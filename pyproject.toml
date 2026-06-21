@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shocklens"
+version = "0.1.0"
+description = "OpenFOAM-first SBLI event extraction and sparse-sensor ML prediction."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Your Name", email = "you@example.com" }]
+keywords = ["sbli", "shock-boundary-layer", "openfoam", "cfd", "machine-learning",
+            "compressible", "supersonic"]
+dependencies = ["numpy>=1.24", "scipy>=1.10", "scikit-learn>=1.2",
+                "joblib>=1.2", "pyyaml>=6.0"]
+
+[project.optional-dependencies]
+vtk = ["pyvista>=0.43", "meshio>=5.3"]
+plot = ["matplotlib>=3.7"]
+dev = ["pytest>=7.0", "ruff>=0.4"]
+
+[project.scripts]
+shocklens = "shocklens.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shocklens*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

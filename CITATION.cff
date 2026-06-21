@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use ShockLens, please cite it."
+title: "ShockLens: OpenFOAM-first SBLI event extraction and sparse-sensor ML prediction"
+authors:
+  - family-names: "Your Name"
+    email: "you@example.com"
+version: 0.1.0
+date-released: 2026-06-21
+license: MIT
+keywords:
+  - shock-boundary-layer interaction
+  - compressible flow
+  - OpenFOAM
+  - machine learning
+  - reduced-order modeling
