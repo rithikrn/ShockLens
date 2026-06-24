@@ -26,5 +26,5 @@ from .models import SparseSensorModel, build_xy
 __version__ = "0.1.0"
 
 __all__ = ["backend", "config", "detect", "forecast", "io", "metrics",
-           "separation", "synthetic", "track", "SparseSensorModel", "build_xy",
+           "separation", "synthetic", "track", "SparseSensorModel", "compression_ramp_field", "build_xy",
            "__version__"]
