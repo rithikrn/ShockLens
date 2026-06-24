@@ -20,10 +20,11 @@ Quickstart::
 
 from __future__ import annotations
 
-from . import detect, forecast, io, metrics, separation, synthetic, track
+from . import backend, config, detect, forecast, io, metrics, separation, synthetic, track
 from .models import SparseSensorModel, build_xy
 
 __version__ = "0.1.0"
 
-__all__ = ["detect", "forecast", "io", "metrics", "separation", "synthetic",
-           "track", "SparseSensorModel", "build_xy", "__version__"]
+__all__ = ["backend", "config", "detect", "forecast", "io", "metrics",
+           "separation", "synthetic", "track", "SparseSensorModel", "build_xy",
+           "__version__"]
