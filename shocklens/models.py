@@ -39,9 +39,23 @@ class SparseSensorModel:
         X, _ = build_xy(dataset, self.target)
         return self.model.predict(X)
 
+    def predict_with_uncertainty(self, dataset):
+        """Return (mean, std) using the spread across the forest's trees.
+
+        The per-tree disagreement is a cheap, honest error bar: wide where the
+        sensors are uninformative, tight where they pin the target down.
+        """
+        X, _ = build_xy(dataset, self.target)
+        per_tree = np.stack([t.predict(X) for t in self.model.estimators_])
+        return per_tree.mean(axis=0), per_tree.std(axis=0)
+
     def sensor_importance(self):
         """Per-sensor importance, useful for sensor-placement studies."""
         return self.model.feature_importances_
+
+    def top_sensors(self, k):
+        """Indices of the k most informative sensors (placement guidance)."""
+        return list(np.argsort(self.sensor_importance())[::-1][:k])
 
     def save(self, path):
         import joblib
