@@ -122,6 +122,107 @@ def _cmd_forecast(args):
                      indent=2))
 
 
+def _cmd_mlcard(args):
+    import numpy as np
+
+    import shocklens as sl
+    from shocklens.forecast import persistence_forecast, windowed_xy
+
+    # 1. Sparse-sensor prediction with an honest train/test split + uncertainty.
+    data = sl.synthetic.make_sbli_dataset(
+        ramp_angles=[8, 10, 12, 14, 16, 18, 20, 22, 24, 26])
+    test_idx = {3, 6}
+    train = [c for i, c in enumerate(data) if i not in test_idx]
+    test = [data[i] for i in test_idx]
+    m = sl.SparseSensorModel("L_sep").fit(train)
+    mean, std = m.predict_with_uncertainty(test)
+    truth = [c["L_sep"] for c in test]
+    sensor_r2 = sl.metrics.regression_scores(mean, truth)["r2"]
+    top = m.top_sensors(3)
+    sensors_x = data[0]["sensors_x"]
+
+    # 2. Forecasting, scored against the persistence baseline.
+    t, fields, _ = sl.synthetic.oblique_shock_timeseries(n_frames=300, fs=100.0)
+    series = sl.track.track_fields(t, fields)["x_foot"]
+    split, w = 200, 10
+    fc = sl.forecast.ShockForecaster(window=w).fit(series[:split])
+    _, yv = windowed_xy(series, w)
+    n_test = len(yv) - (split - w)
+    model_pred = fc.forecast(series)[-n_test:]
+    persist = persistence_forecast(series, w)[-n_test:]
+    yt = yv[-n_test:]
+    mse_model = float(np.mean((model_pred - yt) ** 2))
+    mse_persist = float(np.mean((persist - yt) ** 2)) or 1e-12
+    skill = 1 - mse_model / mse_persist
+
+    print(json.dumps({
+        "sparse_sensor_prediction": {
+            "target": "L_sep", "r2": round(sensor_r2, 3),
+            "mean_uncertainty": round(float(std.mean()), 4),
+            "top_3_sensors_x": [round(float(sensors_x[i]), 3) for i in top],
+        },
+        "shock_forecasting": {
+            "r2": round(sl.metrics.regression_scores(model_pred, yt)["r2"], 3),
+            "skill_over_persistence": round(skill, 3),
+        },
+    }, indent=2))
+
+
+def _cmd_report(args):
+    import os
+
+    import numpy as np
+
+    import shocklens as sl
+    from shocklens import plots
+    from shocklens.forecast import windowed_xy
+    os.makedirs(args.outdir, exist_ok=True)
+
+    # Parity: predicted vs true separation length on held-out cases.
+    angles = list(np.linspace(8, 28, 20))
+    data = sl.synthetic.make_sbli_dataset(ramp_angles=angles)
+    test_idx = {3, 6, 8, 11, 14, 16}                 # interior holdout
+    train = [c for i, c in enumerate(data) if i not in test_idx]
+    test = [data[i] for i in test_idx]
+    m = sl.SparseSensorModel("L_sep").fit(train)
+    mean, std = m.predict_with_uncertainty(test)
+    y_true = [c["L_sep"] for c in test]
+    p1 = plots.plot_parity(y_true, mean, std, f"{args.outdir}/parity_Lsep.png",
+                           title="Separation length: predicted vs true")
+
+    # Forecast: predicted vs true shock-foot trajectory on the held-out tail.
+    t, fields, _ = sl.synthetic.oblique_shock_timeseries(n_frames=300, fs=100.0)
+    series = sl.track.track_fields(t, fields)["x_foot"]
+    w, split = 10, 200
+    fc = sl.forecast.ShockForecaster(window=w).fit(series[:split])
+    _, yv = windowed_xy(series, w)
+    pred_full = fc.forecast(series)
+    tail = slice(split - w, None)
+    tt = t[w:][tail]
+    p2 = plots.plot_forecast_compare(tt, yv[tail], pred_full[tail],
+                                     f"{args.outdir}/forecast_compare.png")
+    print("wrote:\n  " + "\n  ".join([p1, p2]))
+
+
+def _cmd_run_case(args):
+    from shocklens import config
+    cfg = config.load_case(args.case)
+    print(json.dumps(config.run_case(cfg), indent=2))
+
+
+def _cmd_overlay(args):
+    import os
+
+    import shocklens as sl
+    from shocklens import plots
+    os.makedirs(args.outdir, exist_ok=True)
+    f = sl.synthetic.compression_ramp_field()
+    got = sl.detect.detect(f, method=args.detector)
+    p = plots.plot_detection_overlay(f, got, f"{args.outdir}/shock_overlay.png")
+    print(f"wrote {p}\n  detected {got['beta_deg']:.2f} deg | true {f['beta_deg']:.2f} deg "
+          f"| error {abs(got['beta_deg'] - f['beta_deg']):.2f} deg")
+
+
 def _cmd_info(args):
     import shocklens as sl
     print(f"shocklens {sl.__version__}")
@@ -163,6 +264,22 @@ def main(argv=None):
     fc = sub.add_parser("forecast", help="forecast shock motion from its history")
     fc.add_argument("--window", type=int, default=8)
     fc.set_defaults(func=_cmd_forecast)
+
+    mc = sub.add_parser("mlcard", help="ML scorecard: prediction, uncertainty, forecast skill")
+    mc.set_defaults(func=_cmd_mlcard)
+
+    rp = sub.add_parser("report", help="write predicted-vs-true comparison figures")
+    rp.add_argument("--outdir", default="figures")
+    rp.set_defaults(func=_cmd_report)
+
+    rc = sub.add_parser("run-case", help="extract from a VTK described by a YAML case file")
+    rc.add_argument("case")
+    rc.set_defaults(func=_cmd_run_case)
+
+    ov = sub.add_parser("overlay", help="field-level true-vs-detected shock overlay figure")
+    ov.add_argument("--outdir", default="figures")
+    ov.add_argument("--detector", default="oblique_line")
+    ov.set_defaults(func=_cmd_overlay)
 
     i = sub.add_parser("info", help="environment info")
     i.set_defaults(func=_cmd_info)
