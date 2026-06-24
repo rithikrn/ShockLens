@@ -12,7 +12,8 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import welch
 
-__all__ = ["separation_points", "pressure_rms", "dominant_frequency", "psd"]
+__all__ = ["separation_points", "separation_field", "pressure_rms",
+           "dominant_frequency", "psd"]
 
 
 def _zero_crossings(x, f, rising):
@@ -39,6 +40,22 @@ def separation_points(x, cf):
     x_reatt = next((r for r in reatt if r > x_sep), reatt[-1])
     return {"x_sep": float(x_sep), "x_reatt": float(x_reatt),
             "L_sep": float(x_reatt - x_sep), "separated": True}
+
+
+def separation_field(x, cf_2d):
+    """Apply separation_points across spanwise stations of a wall.
+
+    cf_2d is (n_span, nx); returns arrays x_sep(z), x_reatt(z), L_sep(z). This is
+    the natural 3D extension: a swept wall is just a stack of 2D Cf profiles.
+    """
+    sep, reatt, lsep = [], [], []
+    for row in np.atleast_2d(cf_2d):
+        r = separation_points(x, row)
+        sep.append(r["x_sep"])
+        reatt.append(r["x_reatt"])
+        lsep.append(r["L_sep"])
+    return {"x_sep": np.array(sep), "x_reatt": np.array(reatt),
+            "L_sep": np.array(lsep)}
 
 
 def pressure_rms(p_signal):
