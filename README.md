@@ -68,32 +68,62 @@ shocklens forecast        # predict future shock position from its history
 
 Shock-boundary-layer interaction limits high-speed flight: a small shock
 displacement can trigger separation, large wall-pressure fluctuations, buffet,
-thermal and structural loading, and inlet unstart. This is the focus of the CASL
-group at FSU, whose SBLI work centres on wedge/Mach studies, axisymmetric
-interactions, and hypersonic boundary layers.
+thermal and structural loading, and inlet unstart. Its low-frequency unsteadiness
+has been an open problem since Dolling's 2001 "what next" review and remains one.
+This is the focus of the CASL group at FSU, whose SBLI work spans wedge/Mach
+studies, 3D interactions, and hypersonic boundary layers.
 
-Recent machine-learning work on shock flows splits into two camps, and both point
-at the same missing piece:
+The field is moving fast, and the activity sorts into three camps:
 
-- Control and reconstruction. Deep RL can suppress shock-induced separation and
-  oscillations, for example on a transonic RAE2822 airfoil (Mondal, Vinuesa &
-  Jagtap, arXiv:2511.07564, 2025) and on a laminar compression-ramp SBLI run in
-  OpenFOAM (Tao et al., AIAA Journal 63(10), 2025). These methods are powerful
-  but depend on expensive solver-in-the-loop training or full-field information.
-  Variational assimilation of transonic SWBLI from sparse pressure (J. Comput.
-  Phys. 538, 2025) shows sparse sensing is a live, hard problem.
-- High-fidelity analysis. LES of SBLI over a turbine airfoil (arXiv:2512.12082,
-  2025) shows the important outputs are interpretable structures, separation-bubble
-  events, streaks, vortices, wall loading, not a global field RMSE.
+- ML as a PDE solver. PINNs and neural operators promise mesh-free solutions, but
+  they are biased toward smooth functions and oscillate at discontinuities, so
+  shocks remain a hard, actively-patched case (review: arXiv:2503.17379, 2025;
+  Jagtap et al., J. Comput. Phys. 466, 2022). Asking a network to *be* the shock
+  solver fights its own architecture.
+- ML on extracted quantities. Sparse near-wall pressure can reconstruct SBLI
+  pressure fields (Physics of Fluids 35, 076117, 2023), and sensor-based ROMs
+  recover full state from a few probes (Loiseau, Noack & Brunton, J. Fluid Mech.
+  844, 2018; Fukami et al., Nat. Mach. Intell. 3, 2021). These work because they
+  operate on physically-meaningful, low-dimensional signals.
+- Control. Deep RL suppresses shock-induced separation on a laminar
+  compression-ramp SBLI in OpenFOAM, using the wall-pressure coefficient as the
+  state and skin-friction-based separation as the reward (AIAA Journal, 2025,
+  doi:10.2514/1.J065230). The controller consumes exactly the events ShockLens
+  extracts.
+
+Meanwhile GPU DNS solvers (STREAmS, Comput. Phys. Commun. 2021/2023) now generate
+SBLI fields faster than anyone can interpret them. Full reference list in
+`REFERENCES.md`.
 
 ## The gap
 
-> There is no simple, reusable OpenFOAM-first toolkit that turns SBLI simulations
-> into physics-labelled event data and trains lightweight, physics-aware models to
-> predict shock and separation behaviour from sparse measurements.
+> The methods that work, sparse-sensor ROMs and RL control, all consume the same
+> interpretable SBLI events: shock location, separation length, wall-pressure
+> spectra. But there is no simple, reproducible, solver-agnostic tool that
+> reliably *extracts those events* from a field and serves them to the ML layer.
+> Everyone re-implements ad-hoc extraction.
 
-That gap is practical, current, and scales from 2D tutorials to 3D LES. ShockLens
-fills it.
+ShockLens fills that gap, and it scales from 2D tutorials to 3D LES.
+
+## Design philosophy: physics is the cake, ML is the icing
+
+The shock is found by physics, not by a network. Detection, separation, and
+spectra are gradient, zero-crossing, and PSD operations validated against closed-
+form answers (the theta-beta-M angle, known Cf crossings). They do not learn, so
+they do not hallucinate, and they work the first time on a case they have never
+seen. ML only ever acts on the *outputs* of that physics, low-dimensional, labelled
+events, never on raw pixels in place of the physics:
+
+- sparse sensors -> separation length / shock position (with uncertainty),
+- shock trajectory -> short-horizon forecast (early warning of separation/unstart),
+- and, later, those same events as the state/reward for an RL controller, or as
+  hard constraints on a PINN super-resolver.
+
+This ordering is deliberate. It is why the tool is trustworthy on real data, why
+the ML stays small and honest, and why GPU/PINN/RL are additions on a solid base
+rather than a black box asked to do everything. The numbers the ML reports on the
+bundled synthetic data are pipeline checks, not evidence of predictive power;
+that evidence comes from real cases, and the tool is built to measure it honestly.
 
 ## What it extracts
 
@@ -135,12 +165,15 @@ shocklens/
 
 ## Case suite
 
-| Case | Source | Physics | Status |
+Each example adds something the previous one does not, so the suite shows the
+tool's range rather than three variations of one check.
+
+| Case | Adds | Source | Status |
 |---|---|---|---|
-| `wedge_oblique` | analytic + `rhoCentralFoam/wedge15Ma5` | clean oblique shock, known angle | v0.1 |
-| `forwardStep_Ma3` | `rhoCentralFoam/forwardStep` | Mach 3, shock reflections | v0.1 |
-| `compressionRamp_2D` | compression-ramp SBLI | separation, reattachment, loading | v0.2 |
-| `compressionRamp_3D_LES` | 3D LES/DES | spanwise corrugation, bubble breathing | v0.3 |
+| `compressionRamp_2D` (flagship) | full SBLI: separation + reattachment + L_sep + breathing PSD + shock overlay | compression-ramp SBLI | v0.1 offline, real-run recipe |
+| `wedge_oblique` | exact theta-beta-M angle validation | analytic + `rhoCentralFoam/wedge15Ma5` (real tutorial) | v0.1 |
+| `forwardStep_Ma3` | shock capture / numerical schlieren | `rhoCentralFoam/forwardStep` | v0.1 |
+| `compressionRamp_3D_LES` | spanwise corrugation, bubble breathing | 3D LES/DES | v0.3 |
 
 ## Install
 
