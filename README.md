@@ -267,14 +267,63 @@ originals.
 - E. Parish, D. S. Ching, et al., "Data-driven turbulent Prandtl number modeling
   for hypersonic shock-boundary-layer interactions," AIAA Journal, 2024.
 
-## Roadmap
+# Roadmap
 
-- v0.1 (this release): shock detection validated against theory, separation from
-  Cf, wall-pressure PSD, sparse-sensor prediction of separation length.
-- v0.2: 2D compression-ramp SBLI cases, low-frequency shock-motion analysis,
-  temporal prediction (TCN/LSTM) of shock position.
-- v0.3: 3D LES fields, spanwise shock corrugation, bubble breathing, RANS vs LES
-  event comparison.
+ShockLens v0.1 is a 2D shock-event-extraction skeleton with a baseline ML layer.
+The point of the architecture is that each expansion axis below is a *natural
+addition* at a defined extension point, not a rewrite. The seams already exist;
+filling them is the work.
+
+## Expansion axes and the seams that carry them
+
+| Axis | Extension point (already in place) | What's left to build |
+|------|-----------------------------------|----------------------|
+| 2D -> 3D detection | detector registry (`detect.register_detector`); `detect()` dispatch | a `shock_surface_3d` detector that fits a surface, not a line |
+| 2D -> 3D separation | `separation.separation_field` (spanwise stack of Cf) | wire to a real 3D wall patch |
+| Robust / high-fidelity (RANSAC -> LES/DNS) | `oblique_ransac` detector | connected-components + multi-shock labelling for competing structures |
+| Different solvers | `io.FIELD_ALIASES` name resolution | add aliases / a reader per solver |
+| GPU | `backend.array_namespace` (ops follow the input's array module) | validate the cupy path on hardware |
+| Point-wise vs field-wise | detectors return point estimates today | add field-wise outputs (per-cell shock indicator) |
+| Pointwise uncertainty | RF tree-spread in `SparseSensorModel` | propagate to detection (ensemble of fits) |
+
+## Near-term (v0.2): make it a real SBLI tool
+
+- One real OpenFOAM run committed end to end (the wedge `Allrun` is wired).
+- Real compression-ramp case: `wallShearStress -> Cf -> x_sep/x_reatt/L_sep`.
+- Field-level true-vs-detected overlay figure on real VTK.
+- Honest real-data ML metrics (expected to drop from the synthetic ~1.0).
+
+## Later (v0.3 / v0.4)
+
+- 3D LES fields: spanwise shock corrugation, bubble breathing, RANS-vs-LES events.
+- `shocklens/inlet.py`: scramjet / mixed-compression inlet metrics (shock-train
+  and terminal-shock tracking, isolator pressure rise, unstart early-warning,
+  exit-plane distortion).
+
+## What this does and does not change
+
+Refactoring to these seams lifts expandability and implementation maturity and
+keeps the path to higher novelty open. It does **not** by itself make the tool
+novel or widely adopted: that still requires the real-data predictability study.
+The seams just make sure that work is additive, not a teardown.
+
+## AI/ML/GPU as physics-constrained icing
+
+Every learned or accelerated component sits on top of the physics extraction and
+is constrained by it, never replacing it. That is the rule that keeps the tool
+from becoming a black box.
+
+| Addition | How physics constrains it | Grounded in |
+|----------|---------------------------|-------------|
+| Sparse-sensor prediction (here) | trained on extracted, theory-validated events, not raw fields | Phys. Fluids 35, 076117 (2023); Loiseau et al., JFM 844 (2018) |
+| Shock-motion forecasting (here) | input is the detector's trajectory; scored vs persistence | Ganapathisubramani et al., JFM 636 (2009) |
+| RL control hook | state and reward are extracted wall pressure / Cf separation | AIAA J. 2025, doi:10.2514/1.J065230 |
+| PINN / neural-operator super-resolution | extracted shock location enters as a hard constraint / loss region, sidestepping the smoothness bias that makes PINNs oscillate at shocks | review arXiv:2503.17379 (2025) |
+| GPU acceleration | `backend.array_namespace` swaps the array module; physics ops are unchanged | STREAmS, CPC 263 (2021) / 285 (2023) |
+
+The point of the table is the middle column: in each row the learning is anchored
+to a quantity the physics already computed and validated, so the model cannot
+drift away from the physics it is supposed to respect.
 
 ## License
 
