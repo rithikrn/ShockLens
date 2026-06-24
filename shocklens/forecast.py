@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 from sklearn.ensemble import GradientBoostingRegressor
 
-__all__ = ["windowed_xy", "ShockForecaster"]
+__all__ = ["windowed_xy", "ShockForecaster", "persistence_forecast"]
 
 
 def windowed_xy(series, window=8, horizon=1):
@@ -50,3 +50,14 @@ class ShockForecaster:
         """h-step-ahead prediction at every valid point of a series."""
         X, _ = windowed_xy(series, self.window, self.horizon)
         return self.model.predict(X)
+
+
+def persistence_forecast(series, window=8, horizon=1):
+    """Naive baseline: predict that the shock stays where it last was.
+
+    A forecaster only earns its keep if it beats this. mlcard reports the skill
+    score 1 - MSE_model / MSE_persistence.
+    """
+    series = np.asarray(series, dtype=float)
+    X, _ = windowed_xy(series, window, horizon)
+    return X[:, -1]   # last observed value in each window
