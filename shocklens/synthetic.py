@@ -105,35 +105,6 @@ def oblique_shock_timeseries(n_frames=200, fs=100.0, x0=0.3, amp=0.04,
     truth = {"t": t, "x_foot": x_corner, "f_breathing": f_breathing, "fs": fs}
     return t, fields, truth
 
-
-def make_sbli_dataset(ramp_angles=None, n_sensors=12, seed=0):
-    """Ensemble of compression-ramp cases for the sparse-sensor ML baseline.
-
-    Stronger ramp angle -> longer separation and a more upstream shock foot.
-    Each case gives wall-pressure sensors (the input) and the SBLI targets.
-    """
-    if ramp_angles is None:
-        ramp_angles = [8, 10, 12, 14, 16, 18, 20, 22, 24]
-    rng = np.random.default_rng(seed)
-    x = np.linspace(0, 1, 200)
-    sensors_x = np.linspace(0.1, 0.9, n_sensors)
-    rows = []
-    for ang in ramp_angles:
-        # Empirical-ish scalings (monotonic in ramp angle), plus small noise.
-        L_sep = 0.02 * (ang - 6) + rng.normal(0, 0.003)
-        x_sep = 0.55 - 0.012 * (ang - 6)
-        x_reatt = x_sep + L_sep
-        x_shock = x_sep - 0.05
-        cf = ramp_cf_profile(x, x_sep, x_reatt)
-        # Wall pressure: upstream plateau, rise through the interaction.
-        p_w = 1.0 + (1.0 + 0.06 * (ang - 6)) * 0.5 * (1 + np.tanh((x - x_sep) / 0.05))
-        p_w = p_w + rng.normal(0, 0.01, x.shape)
-        sensors = np.interp(sensors_x, x, p_w)
-        rows.append({"ramp_angle": ang, "x": x, "cf": cf, "p_wall": p_w,
-                     "sensors_x": sensors_x, "sensors": sensors.astype(np.float32),
-                     "x_sep": x_sep, "x_reatt": x_reatt, "L_sep": L_sep,
-                     "x_shock": x_shock})
-
 def compression_ramp_field(nx=240, ny=140, mach=3.0, theta_deg=20.0,
                            x_corner=0.5, x_sep=0.40, x_reatt=0.62,
                            shock_width=0.012, bubble_depth=0.15, gamma=GAMMA,
@@ -170,3 +141,33 @@ def compression_ramp_field(nx=240, ny=140, mach=3.0, theta_deg=20.0,
             "x_sep": float(x_sep), "x_reatt": float(x_reatt),
             "mach": float(mach), "theta_deg": float(theta_deg)}
     return rows
+
+
+def make_sbli_dataset(ramp_angles=None, n_sensors=12, seed=0):
+    """Ensemble of compression-ramp cases for the sparse-sensor ML baseline.
+
+    Stronger ramp angle -> longer separation and a more upstream shock foot.
+    Each case gives wall-pressure sensors (the input) and the SBLI targets.
+    """
+    if ramp_angles is None:
+        ramp_angles = [8, 10, 12, 14, 16, 18, 20, 22, 24]
+    rng = np.random.default_rng(seed)
+    x = np.linspace(0, 1, 200)
+    sensors_x = np.linspace(0.1, 0.9, n_sensors)
+    rows = []
+    for ang in ramp_angles:
+        # Empirical-ish scalings (monotonic in ramp angle), plus small noise.
+        L_sep = 0.02 * (ang - 6) + rng.normal(0, 0.003)
+        x_sep = 0.55 - 0.012 * (ang - 6)
+        x_reatt = x_sep + L_sep
+        x_shock = x_sep - 0.05
+        cf = ramp_cf_profile(x, x_sep, x_reatt)
+        # Wall pressure: upstream plateau, rise through the interaction.
+        p_w = 1.0 + (1.0 + 0.06 * (ang - 6)) * 0.5 * (1 + np.tanh((x - x_sep) / 0.05))
+        p_w = p_w + rng.normal(0, 0.01, x.shape)
+        sensors = np.interp(sensors_x, x, p_w)
+        rows.append({"ramp_angle": ang, "x": x, "cf": cf, "p_wall": p_w,
+                     "sensors_x": sensors_x, "sensors": sensors.astype(np.float32),
+                     "x_sep": x_sep, "x_reatt": x_reatt, "L_sep": L_sep,
+                     "x_shock": x_shock})
+
