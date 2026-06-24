@@ -210,6 +210,70 @@ specific SBLI events that drive loading and control, which is more interpretable
 cheaper to train, and a sharper contribution. It also gets more valuable as
 fidelity rises: the richer the LES/DNS field, the more there is to extract.
 
+# References
+
+The work ShockLens sits next to, and why. Paraphrased; follow the DOIs for the
+originals.
+
+## The enduring problem
+
+- D. S. Dolling, "Fifty Years of Shock-Wave/Boundary-Layer Interaction Research:
+  What Next?", AIAA Journal 39(8), 2001. The agenda-setting review; the
+  low-frequency unsteadiness of shock-induced separation is still open.
+- B. Ganapathisubramani, N. T. Clemens, D. S. Dolling, "Low-frequency dynamics of
+  shock-induced separation in a compression ramp interaction," J. Fluid Mech.
+  636, 397-425, 2009. The canonical unsteadiness study ShockLens' PSD targets.
+
+## High-fidelity data is now cheap to generate, expensive to interpret
+
+- M. Bernardini et al., "STREAmS: a high-fidelity accelerated solver for DNS of
+  compressible turbulent flows," Comput. Phys. Commun. 263, 107906, 2021; and
+  STREAmS-2.0, CPC 285, 108644, 2023. GPU-accelerated DNS of SBLI: terabytes of
+  fields that still need event-level interpretation.
+- N. Goffart, B. Tartinville, S. Pirozzoli, "From High-Fidelity High-Order to
+  Reduced-Order Modeling for Unsteady Shock Wave/Boundary Layer Interactions,"
+  2025. The high-fidelity-to-ROM direction ShockLens serves.
+
+## ML as a PDE solver struggles at shocks (why physics-first extraction)
+
+- "Challenges and Advancements in Modeling Shock Fronts with Physics-Informed
+  Neural Networks: A Review and Benchmarking Study," arXiv:2503.17379, 2025.
+  Vanilla PINNs are biased toward smooth functions and oscillate at
+  discontinuities; capturing shocks needs special machinery.
+- A. D. Jagtap, Z. Mao, N. Adams, G. E. Karniadakis, "Physics-informed neural
+  networks for inverse problems in supersonic flows," J. Comput. Phys. 466,
+  111402, 2022. State of the art, and still fighting the smoothness bias.
+
+## ML on extracted quantities works (what ShockLens feeds)
+
+- "Deep learning reconstruction of pressure fluctuations in supersonic
+  shock-boundary layer interaction," Physics of Fluids 35(7), 076117, 2023.
+  Reconstructs near-wall pressure from sparse signals: ShockLens' sparse-sensor
+  premise, demonstrated.
+- K. Fukami, R. Maulik, et al., "Global field reconstruction from sparse sensors
+  with Voronoi-tessellation-assisted deep learning," Nature Machine Intelligence
+  3, 945-951, 2021.
+- J.-C. Loiseau, B. R. Noack, S. L. Brunton, "Sparse reduced-order modelling:
+  sensor-based dynamics to full-state estimation," J. Fluid Mech. 844, 459-490,
+  2018.
+
+## Control needs the events as state and reward
+
+- "Control of Hypersonic Shock-Wave/Laminar-Boundary-Layer Interaction Using Deep
+  Reinforcement Learning," AIAA Journal, 2025, doi:10.2514/1.J065230. A laminar
+  compression ramp in OpenFOAM where the wall-pressure coefficient is the RL
+  state and the skin-friction-based separation is the reward, the exact
+  quantities ShockLens extracts, with a reported ~40% separation reduction.
+- E. Parish, D. S. Ching, et al., "Data-driven turbulent Prandtl number modeling
+  for hypersonic shock-boundary-layer interactions," AIAA Journal, 2024.
+
+## Lab alignment
+
+- CASL @ FSU, Shock Boundary Layer Interaction research,
+  https://sites.google.com/view/caslfsu/research/shock-boundary-layer-interaction
+  3D SWBLI structure, unsteadiness, and reduced-order models for control and
+  design, the long-term direction ShockLens grows toward.
+
 ## Roadmap
 
 - v0.1 (this release): shock detection validated against theory, separation from
