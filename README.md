@@ -267,13 +267,6 @@ originals.
 - E. Parish, D. S. Ching, et al., "Data-driven turbulent Prandtl number modeling
   for hypersonic shock-boundary-layer interactions," AIAA Journal, 2024.
 
-## Lab alignment
-
-- CASL @ FSU, Shock Boundary Layer Interaction research,
-  https://sites.google.com/view/caslfsu/research/shock-boundary-layer-interaction
-  3D SWBLI structure, unsteadiness, and reduced-order models for control and
-  design, the long-term direction ShockLens grows toward.
-
 ## Roadmap
 
 - v0.1 (this release): shock detection validated against theory, separation from
