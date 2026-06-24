@@ -133,4 +133,40 @@ def make_sbli_dataset(ramp_angles=None, n_sensors=12, seed=0):
                      "sensors_x": sensors_x, "sensors": sensors.astype(np.float32),
                      "x_sep": x_sep, "x_reatt": x_reatt, "L_sep": L_sep,
                      "x_shock": x_shock})
+
+def compression_ramp_field(nx=240, ny=140, mach=3.0, theta_deg=20.0,
+                           x_corner=0.5, x_sep=0.40, x_reatt=0.62,
+                           shock_width=0.012, bubble_depth=0.15, gamma=GAMMA,
+                           xlim=(0.0, 1.0), ylim=(0.0, 0.5)):
+    """A 2D compression-ramp SBLI field: separation shock plus a wall bubble.
+
+    Unlike the inviscid wedge, this carries the full interaction: a separation
+    shock that springs ahead of the corner (from x_sep) at the theta-beta-M
+    angle, and a shallow near-wall recirculation bubble between x_sep and
+    x_reatt. Ground truth includes beta_deg, x_sep, x_reatt and a matching Cf,
+    so the flagship example exercises shock detection AND separation at once.
+    """
+    xs = np.linspace(xlim[0], xlim[1], nx)
+    ys = np.linspace(ylim[0], ylim[1], ny)
+    gy, gx = np.meshgrid(ys, xs, indexing="ij")
+
+    beta = oblique_beta(mach, theta_deg, gamma)
+    rho_ratio, p_ratio = _oblique_jumps(mach, beta, gamma)
+
+    nrm = np.array([-np.sin(np.deg2rad(beta)), np.cos(np.deg2rad(beta))])
+    sd = (gx - x_sep) * nrm[0] + gy * nrm[1]
+    s = 0.5 * (1 - np.tanh(sd / shock_width)) * (gx > x_sep)
+    rho = 1.0 + (rho_ratio - 1.0) * s
+    p = 1.0 + (p_ratio - 1.0) * s
+
+    centre, half = 0.5 * (x_sep + x_reatt), 0.5 * (x_reatt - x_sep)
+    bubble = np.exp(-((gx - centre) / half) ** 2) * np.exp(-(gy / 0.03) ** 2)
+    rho = rho - bubble_depth * bubble
+
+    cf = ramp_cf_profile(xs, x_sep, x_reatt)
+    return {"rho": rho.astype(np.float32), "p": p.astype(np.float32),
+            "x": xs, "y": ys, "dx": xs[1] - xs[0], "dy": ys[1] - ys[0],
+            "cf": cf, "beta_deg": float(beta), "x_corner": float(x_corner),
+            "x_sep": float(x_sep), "x_reatt": float(x_reatt),
+            "mach": float(mach), "theta_deg": float(theta_deg)}
     return rows
