@@ -20,11 +20,13 @@ Quickstart::
 
 from __future__ import annotations
 
-from . import backend, config, detect, forecast, io, metrics, separation, synthetic, track
+from . import (assimilate, backend, bos, config, detect, forecast, io, metrics,
+               rankinehugoniot, separation, synthetic, track)
 from .models import SparseSensorModel, build_xy
 
 __version__ = "0.1.0"
 
-__all__ = ["backend", "config", "detect", "forecast", "io", "metrics",
-           "separation", "synthetic", "track", "SparseSensorModel", "compression_ramp_field", "build_xy",
+__all__ = ["assimilate", "backend", "bos", "config", "detect", "forecast",
+           "io", "metrics", "rankinehugoniot",
+           "separation", "synthetic", "track", "SparseSensorModel", "build_xy",
            "__version__"]
