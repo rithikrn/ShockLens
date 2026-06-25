@@ -1,4 +1,5 @@
-import tempfile, os
+import tempfile
+import os
 import shocklens as sl
 
 
@@ -15,7 +16,6 @@ def test_model_save_load_roundtrip():
 
 
 def test_plots_write_files():
-    import numpy as np
     from shocklens import plots
     d = tempfile.mkdtemp()
     f = sl.synthetic.oblique_shock_field()
