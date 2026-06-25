@@ -140,7 +140,6 @@ def compression_ramp_field(nx=240, ny=140, mach=3.0, theta_deg=20.0,
             "cf": cf, "beta_deg": float(beta), "x_corner": float(x_corner),
             "x_sep": float(x_sep), "x_reatt": float(x_reatt),
             "mach": float(mach), "theta_deg": float(theta_deg)}
-    return rows
 
 
 def make_sbli_dataset(ramp_angles=None, n_sensors=12, seed=0):
@@ -170,4 +169,4 @@ def make_sbli_dataset(ramp_angles=None, n_sensors=12, seed=0):
                      "sensors_x": sensors_x, "sensors": sensors.astype(np.float32),
                      "x_sep": x_sep, "x_reatt": x_reatt, "L_sep": L_sep,
                      "x_shock": x_shock})
-
+    return rows
