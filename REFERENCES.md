@@ -61,7 +61,3 @@ originals.
   compression ramp in OpenFOAM where the wall-pressure coefficient is the state
   and skin-friction separation is the reward, the quantities ShockLens extracts.
 
-## Lab alignment
-
-- CASL @ FSU, Shock Boundary Layer Interaction research,
-  https://sites.google.com/view/caslfsu/research/shock-boundary-layer-interaction
