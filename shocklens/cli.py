@@ -223,6 +223,32 @@ def _cmd_overlay(args):
           f"| error {abs(got['beta_deg'] - f['beta_deg']):.2f} deg")
 
 
+def _cmd_assimilate(args):
+    import numpy as np
+
+    import shocklens as sl
+    from shocklens import bos, plots
+    from shocklens.assimilate import ShockAssimilator
+    import os
+    os.makedirs(args.outdir, exist_ok=True)
+
+    gamma = 1.4
+    f = sl.synthetic.oblique_shock_field(mach=args.mach, theta_deg=args.theta,
+                                         x_corner=0.2)
+    # density gradient via the BOS forward/inverse path (the experimental route)
+    dxd, dyd = bos.synthetic_bos(f["rho"], f["dx"], f["dy"], noise=args.noise)
+    up = {"rho1": 1.0, "u1": args.mach * np.sqrt(gamma), "p1": 1.0}
+    out = ShockAssimilator(gamma=gamma).assimilate(f, up)
+    fig = plots.plot_assimilation(out, f"{args.outdir}/assimilated_u.png", field="u")
+    print(json.dumps({
+        "tracked_beta_deg": round(out["beta_deg"], 2),
+        "downstream_Mach": round(out["downstream"]["M2"], 3),
+        "downstream_p_over_p1": round(out["downstream"]["p2"] / up["p1"], 3),
+        "downstream_u": round(out["downstream"]["u2"], 3),
+        "figure": fig,
+    }, indent=2))
+
+
 def _cmd_info(args):
     import shocklens as sl
     print(f"shocklens {sl.__version__}")
@@ -280,6 +306,13 @@ def main(argv=None):
     ov.add_argument("--outdir", default="figures")
     ov.add_argument("--detector", default="oblique_line")
     ov.set_defaults(func=_cmd_overlay)
+
+    asm = sub.add_parser("assimilate", help="recover velocity/pressure from a density gradient (BOS) field")
+    asm.add_argument("--mach", type=float, default=3.0)
+    asm.add_argument("--theta", type=float, default=18.0)
+    asm.add_argument("--noise", type=float, default=0.0)
+    asm.add_argument("--outdir", default="figures")
+    asm.set_defaults(func=_cmd_assimilate)
 
     i = sub.add_parser("info", help="environment info")
     i.set_defaults(func=_cmd_info)
