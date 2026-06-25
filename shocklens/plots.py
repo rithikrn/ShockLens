@@ -18,7 +18,8 @@ from . import detect, separation  # noqa: E402
 
 __all__ = ["plot_schlieren", "plot_cf", "plot_wall_pressure",
            "plot_shock_trajectory", "plot_sensor_importance",
-           "plot_parity", "plot_forecast_compare", "plot_detection_overlay"]
+           "plot_parity", "plot_forecast_compare", "plot_detection_overlay",
+           "plot_assimilation"]
 
 
 def _save(fig, path):
@@ -144,4 +145,22 @@ def plot_detection_overlay(field, detected, path,
     ax.set(xlabel="x", ylabel="y", title=title + extra)
     ax.set_ylim(y0, y1)
     ax.legend(loc="upper left", fontsize=8)
+    return _save(fig, path)
+
+
+def plot_assimilation(recovered, path, field="u",
+                      title="Assimilated field (recovered from density gradient)"):
+    """Show a recovered field (u, v, p, or rho) with the tracked shock implied.
+
+    The headline output: a velocity or pressure field reconstructed from only the
+    density gradient, the quantity BOS gives and PIV struggles to get near a shock.
+    """
+    x, y = np.asarray(recovered["x"]), np.asarray(recovered["y"])
+    arr = np.asarray(recovered[field])
+    fig, ax = plt.subplots(figsize=(6.4, 3.4))
+    im = ax.imshow(arr, origin="lower", cmap="viridis",
+                   extent=[x[0], x[-1], y[0], y[-1]], aspect="auto")
+    fig.colorbar(im, ax=ax, label=field)
+    ax.set(xlabel="x", ylabel="y",
+           title=f"{title}  (beta={recovered['beta_deg']:.1f} deg)")
     return _save(fig, path)
