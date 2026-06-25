@@ -19,6 +19,7 @@ dependencies = ["numpy>=1.24", "scipy>=1.10", "scikit-learn>=1.2",
 vtk = ["pyvista>=0.43", "meshio>=5.3"]
 plot = ["matplotlib>=3.7"]
 dev = ["pytest>=7.0", "ruff>=0.4"]
+pinn = ["torch>=2.0"]            # optional smooth-region PINN refinement
 
 [project.scripts]
 shocklens = "shocklens.cli:main"
