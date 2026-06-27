@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ShockLens compressionRamp_2D mesh : flat plate [-1,0] + 15 deg ramp [0,1.5]    |
+\*---------------------------------------------------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object blockMeshDict; }
+
+scale   1;
+
+// ramp end wall height = 1.5*tan(15deg) = 0.40192
+vertices
+(
+    (-1.0  0.0      0.0 )   // 0
+    ( 0.0  0.0      0.0 )   // 1  corner
+    ( 1.5  0.40192  0.0 )   // 2  ramp end (wall)
+    ( 1.5  1.0      0.0 )   // 3  ramp end (top)
+    ( 0.0  1.0      0.0 )   // 4
+    (-1.0  1.0      0.0 )   // 5
+    (-1.0  0.0      0.05)   // 6
+    ( 0.0  0.0      0.05)   // 7
+    ( 1.5  0.40192  0.05)   // 8
+    ( 1.5  1.0      0.05)   // 9
+    ( 0.0  1.0      0.05)   // 10
+    (-1.0  1.0      0.05)   // 11
+);
+
+blocks
+(
+    // flat-plate block, x in [-1,0]; y clustered at the wall (ratio 8)
+    hex (0 1 4 5 6 7 10 11) (120 80 1) simpleGrading (1 8 1)
+    // ramp block, x in [0,1.5]
+    hex (1 2 3 4 7 8 9 10) (180 80 1) simpleGrading (1 8 1)
+);
+
+edges ();
+
+boundary
+(
+    inlet  { type patch;  faces ( (0 5 11 6) ); }
+    outlet { type patch;  faces ( (2 3 9 8) ); }
+    bottom { type wall;   faces ( (0 1 7 6) (1 2 8 7) ); }
+    top    { type patch;  faces ( (5 4 10 11) (4 3 9 10) ); }
+    frontAndBack { type empty; faces (
+        (0 1 4 5) (1 2 3 4)        // back  z=0
+        (6 7 10 11) (7 8 9 10) );  // front z=0.05
+    }
+);

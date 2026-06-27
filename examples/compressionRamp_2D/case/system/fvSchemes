@@ -1,0 +1,17 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L=1e4         |
+\*---------------------------------------------------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object fvSchemes; }
+fluxScheme      Kurganov;
+ddtSchemes      { default Euler; }
+gradSchemes     { default Gauss linear; }
+divSchemes      { default none; div(tauMC) Gauss linear; }
+interpolationSchemes
+{
+    default         linear;
+    reconstruct(rho) vanLeer;
+    reconstruct(U)   vanLeerV;
+    reconstruct(T)   vanLeer;
+}
+snGradSchemes   { default corrected; }
+laplacianSchemes { default Gauss linear corrected; }

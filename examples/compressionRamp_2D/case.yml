@@ -1,0 +1,11 @@
+# Run after ./case/Allrun produced VTK; point `vtk` at the last-time internal file.
+# shocklens run-case examples/compressionRamp_2D/case.yml
+name: compressionRamp_2D
+vtk: case/VTK/case_8.vtk        # <- edit to your actual foamToVTK output file
+fields: [rho]
+detector: oblique_ransac        # robust for the viscous (noisier) field
+nx: 320
+ny: 180
+mach: 2.0
+theta_deg: 15.0                 # ramp angle; the theta-beta-M check is approximate
+                                # for a separated viscous ramp (see README)

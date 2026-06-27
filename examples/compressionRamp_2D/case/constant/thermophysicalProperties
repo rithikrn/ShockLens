@@ -1,0 +1,20 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L=1e4         |
+\*---------------------------------------------------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object thermophysicalProperties; }
+thermoType
+{
+    type            hePsiThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleInternalEnergy;
+}
+mixture
+{
+    specie          { molWeight 11640.3; }   // gives R=0.7143, a=1 at T=1
+    thermodynamics  { Cp 2.5; Hf 0; }
+    transport       { mu 2.8e-4; Pr 0.72; }  // mu set for Re_L = rho U L / mu = 1e4
+}

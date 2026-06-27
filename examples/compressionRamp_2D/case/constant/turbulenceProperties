@@ -1,0 +1,5 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L=1e4         |
+\*---------------------------------------------------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object turbulenceProperties; }
+simulationType  laminar;

@@ -1,0 +1,16 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L=1e4         |
+\*---------------------------------------------------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object fvSolution; }
+solvers
+{
+    "(rho|rhoU|rhoE)" { solver diagonal; }
+    "(U|e)"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        nSweeps         2;
+        tolerance       1e-9;
+        relTol          0.01;
+    }
+}
