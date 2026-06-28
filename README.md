@@ -76,7 +76,8 @@ Everything offline is deterministic under fixed seeds, so `shocklens demo` and t
 
 ```bash
 pip install -e ".[dev,plot,vtk]"
-make verify          # compile, lint, tests, end-to-end smoke test
+pytest -q
+python comprehensive_smoke_test.py
 ```
 
 ## On real solver output
@@ -87,6 +88,8 @@ shocklens extract path/to/VTK/case_1000.vtk --nx 300 --ny 160
 ```
 
 Or describe the case in a small YAML file and run `shocklens run-case mycase.yaml`; the file is also your reproducibility record. See [`docs/PORTING.md`](docs/PORTING.md) and each example's README.
+
+The main example is the compression ramp in `examples/compressionRamp_2D/`. Run it, point `run-case` at the VTK, and read that folder's README for the steps.
 
 ## License
 
