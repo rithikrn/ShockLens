@@ -1,19 +1,14 @@
 # Changelog
 
 ## 0.1.0
-First release. Offline, solver-free end-to-end pipeline.
 
-- Shock detection: numerical schlieren, shock-line fit, angle and foot location,
-  validated against the theta-beta-M relation.
-- Separation analysis: separation/reattachment from Cf, separation length.
-- Wall signals: pressure RMS, Welch PSD, shock-breathing frequency.
-- Time tracking: shock-foot trajectory over a sequence of fields, breathing rate.
-- ML: random-forest prediction of SBLI targets from sparse wall sensors (save/load),
-  and a gradient-boosting forecaster that predicts future shock motion from its
-  recent history (early-warning signal).
-- IO: VTK reader (OpenFOAM or any solver) plus regridding.
-- Example: the exact OpenFOAM rhoCentralFoam/wedge15Ma5 case (M5, 15 deg wedge).
-- Figures: schlieren, Cf with separation, wall-pressure spectrum, shock trajectory.
-- CLI: demo, extract, train, track, forecast, plot, info.
-- 15 unit tests plus a 10-check comprehensive smoke test that runs the real
-  wedge case physics through the extract CLI.
+First release. Runs offline end to end, no solver needed.
+
+- Shock detection, separation from Cf, wall-pressure RMS/PSD, shock-breathing rate.
+- Shock tracking over time.
+- ML: sparse-sensor prediction, plus a forecaster for shock motion.
+- Assimilation: exact Rankine-Hugoniot jumps, BOS handling, and a tracker that
+  recovers velocity and pressure from a density gradient (optional PINN refiner).
+- Examples: the inviscid wedge (exact angle check) and a laminar compression ramp.
+- CLI: demo, extract, train, track, forecast, mlcard, report, overlay, assimilate, run-case, info.
+- 35 tests plus a 10-check smoke test on the real wedge physics.
