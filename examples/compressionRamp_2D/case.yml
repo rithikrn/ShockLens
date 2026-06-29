@@ -1,11 +1,20 @@
-# Run after ./case/Allrun produced VTK; point `vtk` at the last-time internal file.
-# shocklens run-case examples/compressionRamp_2D/case.yml
+# Run after ./case/Allrun produced VTK:
+#   shocklens run-case examples/compressionRamp_2D/case.yml --outdir results
+# Edit the paths to your actual foamToVTK output.
 name: compressionRamp_2D
-vtk: case/VTK/case_8.vtk        # <- edit to your actual foamToVTK output file
+vtk: case/VTK/case_8.vtk         # internal field (needs rho)
 fields: [rho]
-detector: oblique_ransac        # robust for the viscous (noisier) field
+detector: oblique_ransac         # robust for the viscous (noisier) field
 nx: 320
 ny: 180
 mach: 2.0
-theta_deg: 15.0                 # ramp angle; the theta-beta-M check is approximate
-                                # for a separated viscous ramp (see README)
+theta_deg: 15.0                  # ramp angle; theta-beta-M check is approximate when separated
+
+# --- optional: separation + wall-pressure rise (skipped if absent) ---
+wall_vtk: case/VTK/bottom/bottom_8.vtk   # wall patch (needs wallShearStress and p)
+cf_denom: 2.8                            # 0.5 * rho_inf * U_inf^2
+wall_shear_field: wallShearStress
+
+# --- optional: unsteady wall pressure spectrum (skipped if absent) ---
+probe_file: case/postProcessing/wallPressureProbes/0/p
+probe_col: 3                             # probe column (after the time column)
