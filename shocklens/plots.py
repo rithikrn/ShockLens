@@ -1,9 +1,4 @@
 """Figures for SBLI results.
-
-matplotlib with the Agg backend, so it runs headless (CI, HPC). Every function
-saves a PNG and returns its path. These are the visuals that make extracted
-quantities legible: a schlieren image, a Cf curve with separation marked, a
-wall-pressure spectrum, and a shock trajectory.
 """
 
 from __future__ import annotations
@@ -19,7 +14,7 @@ from . import detect, separation  # noqa: E402
 __all__ = ["plot_schlieren", "plot_cf", "plot_wall_pressure",
            "plot_shock_trajectory", "plot_sensor_importance",
            "plot_parity", "plot_forecast_compare", "plot_detection_overlay",
-           "plot_assimilation"]
+           "plot_assimilation", "plot_field", "plot_wall_distribution"]
 
 
 def _save(fig, path):
@@ -163,4 +158,37 @@ def plot_assimilation(recovered, path, field="u",
     fig.colorbar(im, ax=ax, label=field)
     ax.set(xlabel="x", ylabel="y",
            title=f"{title}  (beta={recovered['beta_deg']:.1f} deg)")
+    return _save(fig, path)
+
+
+def plot_field(field, key, path, title=None, shock=None):
+    """Filled contour of a field (rho, p, ...), optionally with the shock line."""
+    x, y = np.asarray(field["x"]), np.asarray(field["y"])
+    arr = np.asarray(field[key])
+    fig, ax = plt.subplots(figsize=(6.4, 3.4))
+    c = ax.contourf(x, y, arr, levels=30, cmap="viridis")
+    fig.colorbar(c, ax=ax, label=key)
+    if shock is not None:
+        ax.plot(x, shock["slope"] * x + shock["intercept"], "r--", lw=1.3,
+                label=f"shock {shock['beta_deg']:.1f} deg")
+        ax.legend(loc="upper left", fontsize=8)
+    ax.set(xlabel="x", ylabel="y", title=title or f"{key} contours")
+    ax.set_ylim(float(y[0]), float(y[-1]))
+    return _save(fig, path)
+
+
+def plot_wall_distribution(x, p, path, x_sep=None, x_reatt=None,
+                           title="Wall pressure distribution"):
+    """Wall pressure versus streamwise distance, with the interaction marked."""
+    x, p = np.asarray(x), np.asarray(p)
+    fig, ax = plt.subplots(figsize=(6.4, 3.4))
+    ax.plot(x, p, "-", lw=1.6, color="#1f77b4")
+    if x_sep is not None:
+        ax.axvline(x_sep, ls="--", color="#d62728", lw=1, label="separation")
+    if x_reatt is not None:
+        ax.axvline(x_reatt, ls="--", color="#2ca02c", lw=1, label="reattachment")
+    if x_sep is not None or x_reatt is not None:
+        ax.legend(loc="upper left", fontsize=8)
+    ax.set(xlabel="x", ylabel="wall pressure", title=title)
+    ax.grid(alpha=0.3)
     return _save(fig, path)
