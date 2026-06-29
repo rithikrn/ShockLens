@@ -1,11 +1,3 @@
-"""ShockLens CLI: shocklens <command>.
-
-demo     full offline pipeline on synthetic data (no solver, no VTK)
-extract  detect a shock in a VTK file and report angle + foot
-train    fit the sparse-sensor model on synthetic ramps and score it
-info     environment info
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -207,7 +199,7 @@ def _cmd_report(args):
 def _cmd_run_case(args):
     from shocklens import config
     cfg = config.load_case(args.case)
-    print(json.dumps(config.run_case(cfg), indent=2))
+    print(json.dumps(config.run_case(cfg, outdir=args.outdir), indent=2))
 
 
 def _cmd_overlay(args):
@@ -300,6 +292,7 @@ def main(argv=None):
 
     rc = sub.add_parser("run-case", help="extract from a VTK described by a YAML case file")
     rc.add_argument("case")
+    rc.add_argument("--outdir", default=None, help="write contour and result figures here")
     rc.set_defaults(func=_cmd_run_case)
 
     ov = sub.add_parser("overlay", help="field-level true-vs-detected shock overlay figure")
