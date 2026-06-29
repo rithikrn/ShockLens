@@ -18,5 +18,5 @@ def test_run_case_recovers_angle(tmp_path):
     cfg = {"name": "t", "vtk": str(p), "fields": ["rho"],
            "mach": 5.0, "theta_deg": 15.0, "nx": 300, "ny": 160}
     out = sl.config.run_case(cfg)
-    assert out["beta_error_deg"] < 2.0
-    assert "beta_theory_deg" in out
+    assert out["shock"]["beta_error_deg"] < 2.0
+    assert "beta_theory_deg" in out["shock"]
