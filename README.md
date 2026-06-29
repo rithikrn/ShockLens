@@ -82,14 +82,15 @@ python comprehensive_smoke_test.py
 
 ## On real solver output
 
+After an OpenFOAM run and foamToVTK, describe the case in one YAML file and run:
+
 ```bash
-# after an OpenFOAM rhoCentralFoam run + foamToVTK:
-shocklens extract path/to/VTK/case_1000.vtk --nx 300 --ny 160
+shocklens run-case examples/compressionRamp_2D/case.yml --outdir results
 ```
 
-Or describe the case in a small YAML file and run `shocklens run-case mycase.yaml`; the file is also your reproducibility record. See [`docs/PORTING.md`](docs/PORTING.md) and each example's README.
+That's the whole thing: it finds the shock and its strength, measures separation and the wall-pressure rise from the wall shear, computes the breathing spectrum from a probe file, writes the contour and result figures to `results/`, and prints a summary with honesty checks. It warns instead of crashing if a field is missing. The YAML is the only per-case file, and it doubles as your reproducibility record.
 
-The main example is the compression ramp in `examples/compressionRamp_2D/`. Run it, point `run-case` at the VTK, and read that folder's README for the steps.
+To make a case feed all of this, you add two function objects (wall shear and wall-pressure probes) to the OpenFOAM case. The exact additions are in [`docs/CASE_SETUP.md`](docs/CASE_SETUP.md). See also [`docs/PORTING.md`](docs/PORTING.md) and the compression ramp in `examples/compressionRamp_2D/`.
 
 ## License
 
