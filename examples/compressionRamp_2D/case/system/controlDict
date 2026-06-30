@@ -1,5 +1,5 @@
 /*--------------------------------*- C++ -*----------------------------------*\
-| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L=1e4         |
+| ShockLens compressionRamp_2D : laminar Mach 2, 15 deg corner, Re_L = 1e4        |
 \*---------------------------------------------------------------------------*/
 FoamFile { version 2.0; format ascii; class dictionary; object controlDict; }
 application     rhoCentralFoam;
@@ -7,12 +7,13 @@ startFrom       startTime;
 startTime       0;
 stopAt          endTime;
 endTime         8;
-deltaT          1e-4;
+deltaT          1e-5;
 writeControl    adjustableRunTime;
 writeInterval   0.5;
 purgeWrite      0;
 writeFormat     ascii;
 writePrecision  8;
+timeFormat      general;
 runTimeModifiable true;
 adjustTimeStep  yes;
 maxCo           0.3;
@@ -20,6 +21,7 @@ maxDeltaT       1e-3;
 
 functions
 {
+    // skin friction for separation + reattachment (ShockLens: wall_vtk)
     wallShearStress
     {
         type            wallShearStress;
@@ -27,6 +29,7 @@ functions
         patches         (bottom);
         writeControl    writeTime;
     }
+    // time-resolved wall pressure for RMS + breathing rate (ShockLens: probe_file)
     wallPressureProbes
     {
         type            probes;
@@ -36,11 +39,12 @@ functions
         fields          (p);
         probeLocations
         (
-            (-0.5 0.002 0.025)
-            (-0.2 0.002 0.025)
-            ( 0.1 0.029 0.025)
-            ( 0.3 0.082 0.025)
-            ( 0.6 0.163 0.025)
+            (-0.50 1.0e-4 0.025)
+            (-0.20 1.0e-4 0.025)
+            (-0.05 1.0e-4 0.025)
+            ( 0.10 0.0269 0.025)
+            ( 0.30 0.0805 0.025)
+            ( 0.60 0.1609 0.025)
         );
     }
 }
